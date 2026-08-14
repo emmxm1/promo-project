@@ -1,0 +1,60 @@
+The player is identified using {player} from the URL.
+According to the requirements, the player should be identified from
+the authentication token.
+
+This could allow a user to attempt to modify another player's balance.
+
+## 3. Missing authentication
+
+The endpoint does not show any authentication or authorization check.
+The operation should be available only to an authenticated player.
+
+## 4. Missing input validation
+
+The amount is taken directly from the request without validation.
+
+The application should validate that the amount:
+- exists;
+- is numeric;
+- is positive;
+- has an appropriate format and limits.
+
+## 5. Race condition
+
+The balance is read and updated directly:
+
+$player->balance += $request->amount;
+
+There is no database transaction or row locking.
+Two simultaneous requests could potentially cause an incorrect balance.
+
+## 6. No protection against double crediting
+
+There is no mechanism preventing the same bonus from being credited more than once.
+
+The application should store bonus operations and make them idempotent.
+
+## 7. No database transaction
+
+Updating the balance should be performed inside a database transaction together
+with recording the bonus operation.
+
+This ensures that the operations succeed or fail together.
+
+## 8. Financial data precision
+
+Balance and bonus amounts should be handled carefully to avoid precision problems.
+For financial operations, using integer minor units (for example, cents) or an
+appropriate decimal database type is preferable.
+
+## 9. Frontend uses GET
+
+The Vue component also sends the bonus request using GET.
+
+A state-changing operation should use POST and send the required data in the
+request body.
+
+## 10. Error handling
+
+The frontend does not show handling for API errors.
+The user should receive a clear error message when the operation fails.
